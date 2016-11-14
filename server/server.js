@@ -24,7 +24,6 @@ app.use(express.static(publicPath));
 var userController = new UserController();
 
 io.on('connection', (socket) => {
-    console.log('new user connected');
 
     // io.emit => to every single connected user
     // io.to('roomName').emit => to every member of that room
@@ -39,16 +38,20 @@ io.on('connection', (socket) => {
             return callback('name and room name are required');
         }
 
-        socket.join(params.roomName);
-        userController.removeUser(socket.id);
-        userController.addUser(socket.id, params.name, params.roomName);
+        var lcRoom = params.roomName.toLowerCase();
 
-        io.to(params.roomName).emit('updateUserList', userController.getUserList(params.roomName));
+        socket.join(lcRoom);
+        userController.removeUser(socket.id);
+        var currentUser = userController.addUser(socket.id, params.name, lcRoom);
+
+        console.log("Current User:", currentUser);
+
+        socket.emit('updateUserName', currentUser.name);
+        io.to(lcRoom).emit('updateRoomName', params.roomName.toUpperCase());
+        io.to(lcRoom).emit('updateUserList', userController.getUserList(lcRoom));
 
         socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app!'));
-        socket.broadcast.to(params.roomName).emit('newMessage', generateMessage('Admin', `${params.name} has joined`));
-
-        //io.to(params.roomName).emit('')
+        socket.broadcast.to(lcRoom).emit('newMessage', generateMessage('Admin', `${params.name} has joined`));
 
         callback();
 

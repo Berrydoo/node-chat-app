@@ -41,6 +41,16 @@ socket.on('updateUserList', function(users) {
     });
 
     $("#users").html(ol);
+
+});
+
+socket.on('updateUserName', function(userName) {
+    $("#userName").text(userName);
+});
+
+
+socket.on('updateRoomName', function(newName) {
+    $("#roomName").text(newName);
 });
 
 socket.on('newMessage', function(message) {
